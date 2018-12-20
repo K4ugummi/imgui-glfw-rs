@@ -135,7 +135,7 @@ impl ImguiGLFW {
         &mut self,
         window: &mut Window,
         imgui: &'a mut ImGui,
-        messages: &FlushedMessages<'a, WindowEvent>,
+        messages: &FlushedMessages<'a, (f64, glfw::WindowEvent)>,
     ) -> imgui::Ui<'a> {
         /*
         let mouse_util = window.get_mouse_button();
