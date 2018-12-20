@@ -105,6 +105,9 @@ impl ImguiGLFW {
                 };
                 self.mouse_press[index] = true;
             }
+            WindowEvent::CursorPos(w, h) => {
+                imgui.set_mouse_pos(w as f32, h as f32);
+            }
             /*Event::TextInput { ref text, .. } => {
                 for chr in text.chars() {
                     imgui.add_input_character(chr);
@@ -162,7 +165,7 @@ impl ImguiGLFW {
         let mouse_cursor = imgui.mouse_cursor();
         if imgui.mouse_draw_cursor() || mouse_cursor == ImGuiMouseCursor::None {
             self.cursor = (ImGuiMouseCursor::None, None);
-            //mouse_util.show_cursor(false);
+        //mouse_util.show_cursor(false);
         } else {
             //mouse_util.show_cursor(true);
 
