@@ -1,13 +1,10 @@
 use imgui::sys as imgui_sys;
-
 use glfw::{Action, Key, Modifiers, MouseButton, StandardCursor, WindowEvent};
 use imgui::{ImGui, ImGuiKey, ImGuiMouseCursor};
 
 pub struct ImguiGLFW {
     mouse_press: [bool; 5],
     cursor_pos: (f64, f64),
-    ignore_mouse: bool,
-    ignore_keyboard: bool,
     _cursor: (ImGuiMouseCursor, Option<StandardCursor>),
 }
 
@@ -44,25 +41,11 @@ impl ImguiGLFW {
         Self {
             mouse_press: [false; 5],
             cursor_pos: (0., 0.),
-            ignore_keyboard: false,
-            ignore_mouse: false,
             _cursor: (ImGuiMouseCursor::None, None),
         }
     }
 
     pub fn handle_event(&mut self, imgui: &mut ImGui, event: &WindowEvent) {
-        fn set_mod(imgui: &mut ImGui, modifier: Modifiers) {
-            let ctrl = modifier.intersects(Modifiers::Control);
-            let alt = modifier.intersects(Modifiers::Alt);
-            let shift = modifier.intersects(Modifiers::Shift);
-            let super_ = modifier.intersects(Modifiers::Super);
-
-            imgui.set_key_ctrl(ctrl);
-            imgui.set_key_alt(alt);
-            imgui.set_key_shift(shift);
-            imgui.set_key_super(super_);
-        }
-
         match *event {
             WindowEvent::MouseButton(mouse_btn, action, _) => {
                 let index = match mouse_btn {
@@ -84,21 +67,31 @@ impl ImguiGLFW {
             WindowEvent::Scroll(_, d) => {
                 imgui.set_mouse_wheel(d as f32);
             }
+            WindowEvent::Char(character) => {
+                println!("Character: ['{}']", character);
+                imgui.add_input_character(character);
+            }
             WindowEvent::Key(_, scancode, action, modifier) => {
-                set_mod(imgui, modifier);
-                match action {
-                    Action::Press => {
-                        imgui.set_key(scancode as u8, true);
-                    }
-                    Action::Repeat => {
-                        imgui.set_key(scancode as u8, true);
-                    }
-                    Action::Release => {
-                        imgui.set_key(scancode as u8, false);
-                    }
+                Self::set_mod(imgui, modifier);
+                if action != Action::Release {
+                    imgui.set_key(scancode as u8, true);
+                } else {
+                    imgui.set_key(scancode as u8, false);
                 }
             }
             _ => {}
         }
+    }
+
+    fn set_mod(imgui: &mut ImGui, modifier: Modifiers) {
+        let ctrl = modifier.intersects(Modifiers::Control);
+        let alt = modifier.intersects(Modifiers::Alt);
+        let shift = modifier.intersects(Modifiers::Shift);
+        let super_ = modifier.intersects(Modifiers::Super);
+
+        imgui.set_key_ctrl(ctrl);
+        imgui.set_key_alt(alt);
+        imgui.set_key_shift(shift);
+        imgui.set_key_super(super_);
     }
 }
