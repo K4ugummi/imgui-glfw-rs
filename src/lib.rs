@@ -1,8 +1,10 @@
-use imgui::sys as imgui_sys;
 use glfw::{Action, Key, Modifiers, MouseButton, StandardCursor, WindowEvent};
+use imgui::sys as imgui_sys;
 use imgui::{ImGui, ImGuiKey, ImGuiMouseCursor};
+use std::time::Instant;
 
 pub struct ImguiGLFW {
+    last_frame: Instant,
     mouse_press: [bool; 5],
     cursor_pos: (f64, f64),
     _cursor: (ImGuiMouseCursor, Option<StandardCursor>),
@@ -39,6 +41,7 @@ impl ImguiGLFW {
         }
 
         Self {
+            last_frame: Instant::now(),
             mouse_press: [false; 5],
             cursor_pos: (0., 0.),
             _cursor: (ImGuiMouseCursor::None, None),
@@ -68,7 +71,6 @@ impl ImguiGLFW {
                 imgui.set_mouse_wheel(d as f32);
             }
             WindowEvent::Char(character) => {
-                println!("Character: ['{}']", character);
                 imgui.add_input_character(character);
             }
             WindowEvent::Key(_, scancode, action, modifier) => {
@@ -81,6 +83,15 @@ impl ImguiGLFW {
             }
             _ => {}
         }
+    }
+
+    pub fn update<'a>(&mut self) -> f32 {
+        let now = Instant::now();
+        let delta = now - self.last_frame;
+        let delta_s = delta.as_secs() as f32 + delta.subsec_nanos() as f32 / 1_000_000_000.0;
+        self.last_frame = now;
+
+        delta_s
     }
 
     fn set_mod(imgui: &mut ImGui, modifier: Modifiers) {
