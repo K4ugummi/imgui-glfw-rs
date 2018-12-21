@@ -1,6 +1,6 @@
 [package]
 name = "imgui-glfw-rs"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["K4ugummi <stephan.schauerteŋmail.com>"]
 edition = "2018"
 
