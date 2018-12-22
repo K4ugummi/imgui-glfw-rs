@@ -2,8 +2,14 @@
 name = "imgui-glfw-rs"
 version = "0.1.2"
 authors = ["K4ugummi <stephan.schauerteŋmail.com>"]
+description = "ImGui imput handling for GLFW"
+homepage = "https://github.com/K4ugummi/imgui-glfw-rs"
+repository = "https://github.com/K4ugummi/imgui-glfw-rs"
+readme = "README.md"
+categories = ["gui"]
+license = "MIT/Apache-2.0"
 edition = "2018"
 
 [dependencies]
-imgui = "*"
-glfw = "*"
+imgui = "0.0.21"
+glfw = "0.25.1"
