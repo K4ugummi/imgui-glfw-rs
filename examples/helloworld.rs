@@ -59,6 +59,8 @@ fn main() {
     let renderer =
         imgui_opengl_renderer::Renderer::new(&mut imgui, |s| window.get_proc_address(s) as _);
 
+    let mut text_buffer = imgui::ImString::new("Hello text field");
+
     while !window.should_close() {
         window.make_current();
 
@@ -72,8 +74,9 @@ fn main() {
             .size((400., 0.), ImGuiCond::Once)
             .build(|| {
                 ui.text(im_str!("Hello world!"));
-                ui.text(im_str!("こんにちは世界！"));
                 ui.text(im_str!("This...is...imgui-rs!"));
+                ui.separator();
+                ui.input_text_multiline(im_str!("Text testing"), &mut text_buffer, (-1.0, 100.0)).build();
                 ui.separator();
                 let mouse_pos = ui.imgui().mouse_pos();
                 ui.text(im_str!(
