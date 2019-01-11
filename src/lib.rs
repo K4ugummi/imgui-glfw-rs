@@ -243,13 +243,11 @@ impl ImguiGLFW {
 }
 
 #[doc(hidden)]
-#[allow(unused)]
 pub extern "C" fn get_clipboard_text(_user_data: *mut c_void) -> *const c_char {
     unsafe { glfw::ffi::glfwGetClipboardString(WINDOW as *mut GLFWwindow) }
 }
 
 #[doc(hidden)]
-#[allow(unused)]
 #[cfg_attr(feature = "cargo-clippy", allow(clippy::not_unsafe_ptr_arg_deref))]
 pub extern "C" fn set_clipboard_text(_user_data: *mut c_void, text: *const c_char) {
     unsafe {
