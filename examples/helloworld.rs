@@ -76,7 +76,8 @@ fn main() {
                 ui.text(im_str!("Hello world!"));
                 ui.text(im_str!("This...is...imgui-rs!"));
                 ui.separator();
-                ui.input_text_multiline(im_str!("Text testing"), &mut text_buffer, (-1.0, 100.0)).build();
+                ui.input_text_multiline(im_str!("Text testing"), &mut text_buffer, (-1.0, 100.0))
+                    .build();
                 ui.separator();
                 let mouse_pos = ui.imgui().mouse_pos();
                 ui.text(im_str!(

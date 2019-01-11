@@ -105,12 +105,14 @@
 //! }
 //! ```
 
-use glfw::{Action, Key, Modifiers, MouseButton, StandardCursor, Window, WindowEvent};
 use glfw::ffi::GLFWwindow;
+use glfw::{Action, Key, Modifiers, MouseButton, StandardCursor, Window, WindowEvent};
 use imgui::sys as imgui_sys;
 use imgui::{ImGui, ImGuiKey, ImGuiMouseCursor};
+use std::os::raw::{c_char, c_void};
 use std::time::Instant;
-use std::os::raw::{c_void, c_char};
+
+static mut WINDOW: *mut c_void = std::ptr::null_mut() as *mut c_void;
 
 pub struct ImguiGLFW {
     last_frame: Instant,
@@ -121,6 +123,10 @@ pub struct ImguiGLFW {
 
 impl ImguiGLFW {
     pub fn new(imgui: &mut ImGui) -> Self {
+        unsafe {
+            WINDOW = glfw::ffi::glfwGetCurrentContext() as *mut c_void;
+        }
+
         {
             let io = unsafe { &mut *imgui_sys::igGetIO() };
             io.get_clipboard_text_fn = Some(get_clipboard_text);
@@ -200,21 +206,19 @@ impl ImguiGLFW {
         if imgui.mouse_draw_cursor() || mouse_cursor == ImGuiMouseCursor::None {
             self.cursor = (ImGuiMouseCursor::None, None);
             window.set_cursor(None);
-        } else {
-            if mouse_cursor != self.cursor.0 {
-                let cursor = match mouse_cursor {
-                    ImGuiMouseCursor::None => unreachable!("mouse_cursor was None!"),
-                    ImGuiMouseCursor::Arrow => StandardCursor::Arrow,
-                    ImGuiMouseCursor::TextInput => StandardCursor::IBeam,
-                    ImGuiMouseCursor::Move => StandardCursor::Hand,
-                    ImGuiMouseCursor::ResizeNS => StandardCursor::VResize,
-                    ImGuiMouseCursor::ResizeEW => StandardCursor::HResize,
-                    ImGuiMouseCursor::ResizeNESW => StandardCursor::Crosshair,
-                    ImGuiMouseCursor::ResizeNWSE => StandardCursor::Crosshair,
-                };
+        } else if mouse_cursor != self.cursor.0 {
+            let cursor = match mouse_cursor {
+                ImGuiMouseCursor::None => unreachable!("mouse_cursor was None!"),
+                ImGuiMouseCursor::Arrow => StandardCursor::Arrow,
+                ImGuiMouseCursor::TextInput => StandardCursor::IBeam,
+                ImGuiMouseCursor::Move => StandardCursor::Hand,
+                ImGuiMouseCursor::ResizeNS => StandardCursor::VResize,
+                ImGuiMouseCursor::ResizeEW => StandardCursor::HResize,
+                ImGuiMouseCursor::ResizeNESW => StandardCursor::Crosshair,
+                ImGuiMouseCursor::ResizeNWSE => StandardCursor::Crosshair,
+            };
 
-                window.set_cursor(Some(glfw::Cursor::standard(cursor)));
-            }
+            window.set_cursor(Some(glfw::Cursor::standard(cursor)));
         }
 
         let now = Instant::now();
@@ -224,12 +228,11 @@ impl ImguiGLFW {
 
         let window_size = window.get_size();
         let frame_size = imgui::FrameSize {
-            logical_size: (window_size.0 as f64, window_size.1 as f64),
+            logical_size: (f64::from(window_size.0), f64::from(window_size.1)),
             hidpi_factor: 1.0,
         };
-        let ui = imgui.frame(frame_size, delta_s);
 
-        ui
+        imgui.frame(frame_size, delta_s)
     }
 
     fn set_mod(imgui: &mut ImGui, modifier: Modifiers) {
@@ -241,16 +244,16 @@ impl ImguiGLFW {
 }
 
 #[doc(hidden)]
+#[allow(unused)]
 pub extern "C" fn get_clipboard_text(_user_data: *mut c_void) -> *const c_char {
-    unsafe {
-        glfw::ffi::glfwGetClipboardString(_user_data as *mut GLFWwindow)
-    }
+    unsafe { glfw::ffi::glfwGetClipboardString(WINDOW as *mut GLFWwindow) }
 }
 
 #[doc(hidden)]
-#[cfg_attr(feature = "cargo-clippy", allow(not_unsafe_ptr_arg_deref))]
+#[allow(unused)]
+#[cfg_attr(feature = "cargo-clippy", allow(clippy::not_unsafe_ptr_arg_deref))]
 pub extern "C" fn set_clipboard_text(_user_data: *mut c_void, text: *const c_char) {
     unsafe {
-        glfw::ffi::glfwSetClipboardString(_user_data as *mut GLFWwindow, text);
+        glfw::ffi::glfwSetClipboardString(WINDOW as *mut GLFWwindow, text);
     }
 }

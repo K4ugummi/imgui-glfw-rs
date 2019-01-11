@@ -41,9 +41,9 @@ fn main() {
 - Key press and release
 - Modifier handling
 - Cursor icons
+- Clipboard copying/pasting
 
 ## Unimplemented things and known issues
-- Clipboard copying/pasting crashes
 
 # Compiling and running the example
 ```sh
