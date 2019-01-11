@@ -231,7 +231,6 @@ impl ImguiGLFW {
             logical_size: (f64::from(window_size.0), f64::from(window_size.1)),
             hidpi_factor: 1.0,
         };
-
         imgui.frame(frame_size, delta_s)
     }
 
