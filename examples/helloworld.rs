@@ -1,5 +1,5 @@
 use glfw::Context;
-use imgui::{im_str, FontGlyphRange, ImFontConfig, ImGui, ImGuiCond};
+use imgui::{FontGlyphRange, ImFontConfig, ImGui};
 use imgui_glfw_rs::ImguiGLFW;
 
 fn main() {
@@ -59,8 +59,6 @@ fn main() {
     let renderer =
         imgui_opengl_renderer::Renderer::new(&mut imgui, |s| window.get_proc_address(s) as _);
 
-    let mut text_buffer = imgui::ImString::new("Hello text field");
-
     while !window.should_close() {
         window.make_current();
 
@@ -70,22 +68,7 @@ fn main() {
 
         let ui = imgui_glfw.frame(&mut window, &mut imgui);
 
-        ui.window(im_str!("Hello world"))
-            .size((400., 0.), ImGuiCond::Once)
-            .build(|| {
-                ui.text(im_str!("Hello world!"));
-                ui.text(im_str!("This...is...imgui-rs!"));
-                ui.separator();
-                ui.input_text_multiline(im_str!("Text testing"), &mut text_buffer, (-1.0, 100.0))
-                    .build();
-                ui.separator();
-                let mouse_pos = ui.imgui().mouse_pos();
-                ui.text(im_str!(
-                    "Mouse Position: ({:.1},{:.1})",
-                    mouse_pos.0,
-                    mouse_pos.1
-                ));
-            });
+        ui.show_demo_window(&mut true);
 
         renderer.render(ui);
 
