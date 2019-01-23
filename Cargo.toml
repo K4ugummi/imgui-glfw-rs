@@ -1,6 +1,6 @@
 [package]
 name = "imgui-glfw-rs"
-version = "0.2.3"
+version = "0.2.4"
 authors = ["K4ugummi <stephan.schauerteŋmail.com>"]
 description = "ImGui imput handling for GLFW"
 homepage = "https://github.com/K4ugummi/imgui-glfw-rs"
