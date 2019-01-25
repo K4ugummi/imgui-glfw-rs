@@ -2,13 +2,15 @@
 **EXPERIMENTAL!**  
 [![crates.io](https://meritbadge.herokuapp.com/imgui-glfw-rs)](https://crates.io/crates/imgui-glfw-rs)
 [![Documentation on docs.rs](https://docs.rs/imgui-glfw-rs/badge.svg)](https://docs.rs/imgui)
+[![Dependencies](https://deps.rs/repo/github/k4ugummi/imgui-glfw-rs/status.svg)](https://deps.rs/repo/github/k4ugummi/imgui-glfw-rs)
 
 GLFW input handling for imgui
 
 ## How to use
 ```rust
-// ImGui uses { ... }
+use imgui_glfw_rs::glfw as glfw;    // avoid version conflicts
 use imgui_glfw_rs::ImguiGLFW;
+// ImGui uses { ... }
 
 fn main() {
     // Initialize imgui and glfw and imgui renderer.
@@ -57,3 +59,7 @@ cargo run --example helloworld
 2. Run rustfmt for code style conformance  
 `cargo fmt`
 3. Open a pull request
+
+# Thanks to
+- The piston developers for maintaining the `glfw` crate
+- You for using this crate and maybe even providing feedback

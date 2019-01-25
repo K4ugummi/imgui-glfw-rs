@@ -2,7 +2,11 @@
 //!
 //! # Example use
 //! You can run this example with `cargo run --example helloworld`
+//!
+//! I recommend using the re-exported glfw to avoid version conflicts.
+//! You can do so with `use imgui_glfw_rs::glfw as glfw;`
 //! ```rust
+//! use imgui_glfw_rs::glfw as glfw;
 //! # use glfw::Context;
 //! # use imgui::{im_str, FontGlyphRange, ImFontConfig, ImGui, ImGuiCond};
 //! use imgui_glfw_rs::ImguiGLFW;
@@ -104,6 +108,8 @@
 //!     }
 //! }
 //! ```
+
+pub use glfw;
 
 use glfw::ffi::GLFWwindow;
 use glfw::{Action, Key, Modifiers, MouseButton, StandardCursor, Window, WindowEvent};

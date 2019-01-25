@@ -1,3 +1,5 @@
+use imgui_glfw_rs::glfw as glfw;
+
 use glfw::Context;
 use imgui::{FontGlyphRange, ImFontConfig, ImGui};
 use imgui_glfw_rs::ImguiGLFW;
