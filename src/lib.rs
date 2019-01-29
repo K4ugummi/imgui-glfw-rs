@@ -6,7 +6,10 @@
 //! I recommend using the re-exported glfw to avoid version conflicts.
 //! You can do so with `use imgui_glfw_rs::glfw as glfw;`
 //! ```rust
-//! use imgui_glfw_rs::glfw as glfw;
+//! // Use the reexported glfw crate to avoid version conflicts.
+//! use imgui_glfw_rs::glfw;
+//! // Use the reexported imgui crate to avoid version conflicts.
+//! use imgui_glfw_rs::imgui;
 //! # use glfw::Context;
 //! # use imgui::{im_str, FontGlyphRange, ImFontConfig, ImGui, ImGuiCond};
 //! use imgui_glfw_rs::ImguiGLFW;
@@ -109,7 +112,10 @@
 //! }
 //! ```
 
+/// Use the reexported glfw crate to avoid version conflicts.
 pub use glfw;
+/// Use the reexported imgui crate to avoid version conflicts.
+pub use imgui;
 
 use glfw::ffi::GLFWwindow;
 use glfw::{Action, Key, Modifiers, MouseButton, StandardCursor, Window, WindowEvent};

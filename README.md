@@ -8,7 +8,11 @@ GLFW input handling for imgui
 
 ## How to use
 ```rust
-use imgui_glfw_rs::glfw as glfw;    // avoid version conflicts
+// Use the reexported glfw crate to avoid version conflicts.
+use imgui_glfw_rs::glfw;
+// Use the reexported imgui crate to avoid version conflicts.
+use imgui_glfw_rs::imgui;
+
 use imgui_glfw_rs::ImguiGLFW;
 // ImGui uses { ... }
 
@@ -61,5 +65,6 @@ cargo run --example helloworld
 3. Open a pull request
 
 # Thanks to
-- The piston developers for maintaining the `glfw` crate
+- The [piston developers](https://github.com/PistonDevelopers) for maintaining the [glfw crate](https://github.com/PistonDevelopers/glfw-rs).
+- [Gekkio](https://github.com/Gekkio) for maintaining the [imgui bindings](https://github.com/Gekkio/imgui-rs) for rust.
 - You for using this crate and maybe even providing feedback
