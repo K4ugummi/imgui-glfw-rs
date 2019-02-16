@@ -1,6 +1,6 @@
 [package]
 name = "imgui-glfw-rs"
-version = "0.2.6"
+version = "0.2.7"
 authors = ["K4ugummi <stephan.schauerte@gmail.com>"]
 description = "ImGui imput handling for GLFW"
 homepage = "https://github.com/K4ugummi/imgui-glfw-rs"
@@ -11,9 +11,9 @@ license = "MIT/Apache-2.0"
 edition = "2018"
 
 [dependencies]
-imgui = "^0.0.21"
-glfw = "^0.26.1"
+imgui = "0.0.22"
+glfw = "0.26.1"
 
 [dev-dependencies]
-imgui-opengl-renderer = "0.3.1"
+imgui-opengl-renderer = "0.4.0"
 gl = "0.11.0"

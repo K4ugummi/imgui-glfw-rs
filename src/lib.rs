@@ -223,11 +223,12 @@ impl ImguiGLFW {
                 ImGuiMouseCursor::None => unreachable!("mouse_cursor was None!"),
                 ImGuiMouseCursor::Arrow => StandardCursor::Arrow,
                 ImGuiMouseCursor::TextInput => StandardCursor::IBeam,
-                ImGuiMouseCursor::Move => StandardCursor::Hand,
+                ImGuiMouseCursor::ResizeAll => StandardCursor::Crosshair,
                 ImGuiMouseCursor::ResizeNS => StandardCursor::VResize,
                 ImGuiMouseCursor::ResizeEW => StandardCursor::HResize,
                 ImGuiMouseCursor::ResizeNESW => StandardCursor::Crosshair,
                 ImGuiMouseCursor::ResizeNWSE => StandardCursor::Crosshair,
+                ImGuiMouseCursor::Hand => StandardCursor::Hand,
             };
 
             window.set_cursor(Some(glfw::Cursor::standard(cursor)));
