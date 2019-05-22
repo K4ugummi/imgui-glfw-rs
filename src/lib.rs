@@ -223,11 +223,11 @@ impl ImguiGLFW {
                 ImGuiMouseCursor::None => unreachable!("mouse_cursor was None!"),
                 ImGuiMouseCursor::Arrow => StandardCursor::Arrow,
                 ImGuiMouseCursor::TextInput => StandardCursor::IBeam,
-                ImGuiMouseCursor::ResizeAll => StandardCursor::Crosshair,
+                ImGuiMouseCursor::ResizeAll => StandardCursor::Arrow,
                 ImGuiMouseCursor::ResizeNS => StandardCursor::VResize,
                 ImGuiMouseCursor::ResizeEW => StandardCursor::HResize,
-                ImGuiMouseCursor::ResizeNESW => StandardCursor::Crosshair,
-                ImGuiMouseCursor::ResizeNWSE => StandardCursor::Crosshair,
+                ImGuiMouseCursor::ResizeNESW => StandardCursor::Arrow,
+                ImGuiMouseCursor::ResizeNWSE => StandardCursor::Arrow,
                 ImGuiMouseCursor::Hand => StandardCursor::Hand,
             };
 
