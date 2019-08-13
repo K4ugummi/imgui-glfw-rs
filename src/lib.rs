@@ -1,109 +1,57 @@
 //! ImGui input handling for Glfw.
 //!
 //! # Example use
-//! You can run this example with `cargo run --example helloworld`
+//! You can run this example with `cargo run --example hello_world`
 //!
-//! I recommend using the re-exported glfw to avoid version conflicts.
-//! You can do so with `use imgui_glfw_rs::glfw as glfw;`
 //! ```rust
-//! // Use the reexported glfw crate to avoid version conflicts.
+//! use glfw::Context;
+//! use imgui::Context as ImContext;
 //! use imgui_glfw_rs::glfw;
-//! // Use the reexported imgui crate to avoid version conflicts.
 //! use imgui_glfw_rs::imgui;
-//! # use glfw::Context;
-//! # use imgui::{im_str, FontGlyphRange, ImFontConfig, ImGui, ImGuiCond};
 //! use imgui_glfw_rs::ImguiGLFW;
 //!
 //! fn main() {
-//!     // Initialize imgui and glfw.
-//!     // { ... }
-//! #     let mut glfw = glfw::init(glfw::FAIL_ON_ERRORS).unwrap();
-//! #     glfw.window_hint(glfw::WindowHint::ContextVersion(3, 3));
-//! #
-//! #     let (mut window, events) = glfw
-//! #         .create_window(
-//! #             1024,
-//! #             768,
-//! #             "imgui-glfw-rs example",
-//! #             glfw::WindowMode::Windowed,
-//! #         )
-//! #         .expect("Failed to create window");
-//! #
-//! #     window.make_current();
-//! #     window.set_framebuffer_size_polling(true);
-//! #     window.set_cursor_pos_polling(true);
-//! #     window.set_scroll_polling(true);
-//! #     window.set_mouse_button_polling(true);
-//! #     window.set_char_polling(true);
-//! #     window.set_key_polling(true);
-//! #
-//! #     gl::load_with(|symbol| window.get_proc_address(symbol) as *const _);
-//! #     unsafe {
-//! #         gl::Enable(gl::BLEND);
-//! #         gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
-//! #         gl::Enable(gl::DEPTH_TEST);
-//! #         gl::DepthFunc(gl::LESS);
-//! #         gl::ClearColor(0.1, 0.1, 0.1, 1.0);
-//! #     }
-//! #
-//! #     let mut imgui = ImGui::init();
-//! #
-//! #     imgui.fonts().add_default_font_with_config(
-//! #         ImFontConfig::new()
-//! #             .oversample_h(1)
-//! #             .pixel_snap_h(true)
-//! #             .size_pixels(24.),
-//! #     );
-//! #
-//! #     imgui.fonts().add_font_with_config(
-//! #         include_bytes!("../res/OpenSans-Regular.ttf"),
-//! #         ImFontConfig::new()
-//! #             .merge_mode(true)
-//! #             .oversample_h(1)
-//! #             .pixel_snap_h(true)
-//! #             .size_pixels(24.)
-//! #             .rasterizer_multiply(1.75),
-//! #         &FontGlyphRange::japanese(),
-//! #     );
-//! #
-//! #     imgui.set_font_global_scale(1.);
+//!     let mut glfw = glfw::init(glfw::FAIL_ON_ERRORS).unwrap();
+//!     glfw.window_hint(glfw::WindowHint::ContextVersion(3, 3));
 //!
-//!     let mut imgui_glfw = ImguiGLFW::new(&mut imgui);
-//! #
-//! #     let renderer =
-//! #         imgui_opengl_renderer::Renderer::new(&mut imgui, |s| window.get_proc_address(s) as _);
+//!     let (mut window, events) = glfw
+//!         .create_window(
+//!             1024,
+//!             768,
+//!             "imgui-glfw-rs example",
+//!             glfw::WindowMode::Windowed,
+//!         )
+//!         .expect("Failed to create window");
+//!
+//!     window.make_current();
+//!     window.set_all_polling(true);
+//!
+//!     gl::load_with(|symbol| window.get_proc_address(symbol) as *const _);
+//!     unsafe {
+//!         gl::Enable(gl::BLEND);
+//!         gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+//!         gl::Enable(gl::DEPTH_TEST);
+//!         gl::DepthFunc(gl::LESS);
+//!         gl::ClearColor(0.1, 0.1, 0.1, 1.0);
+//!     }
+//!
+//!     let mut imgui = ImContext::create();
+//!
+//!     let mut imgui_glfw = ImguiGLFW::new(&mut imgui, &mut window);
 //!
 //!     while !window.should_close() {
-//! #         window.make_current();
-//! #
 //!         unsafe {
 //!             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 //!         }
 //!
 //!         let ui = imgui_glfw.frame(&mut window, &mut imgui);
-//! #
-//!         // Draw your ui.
-//!         // { ... }
-//! #         ui.window(im_str!("Hello world"))
-//! #             .size((400., 0.), ImGuiCond::Once)
-//! #             .build(|| {
-//! #                 ui.text(im_str!("Hello world!"));
-//! #                 ui.text(im_str!("こんにちは世界！"));
-//! #                 ui.text(im_str!("This...is...imgui-rs!"));
-//! #                 ui.separator();
-//! #                 let mouse_pos = ui.imgui().mouse_pos();
-//! #                 ui.text(im_str!(
-//! #                     "Mouse Position: ({:.1},{:.1})",
-//! #                     mouse_pos.0,
-//! #                     mouse_pos.1
-//! #                 ));
-//! #             });
-//! #
-//! #         renderer.render(ui);
-//! #
-//! #         window.swap_buffers();
 //!
-//!         // Handle imgui events
+//!         ui.show_demo_window(&mut true);
+//!
+//!         imgui_glfw.draw(ui, &mut window);
+//!
+//!         window.swap_buffers();
+//!
 //!         glfw.poll_events();
 //!         for (_, event) in glfw::flush_messages(&events) {
 //!             imgui_glfw.handle_event(&mut imgui, &event);
@@ -119,64 +67,80 @@ pub use imgui;
 
 use glfw::ffi::GLFWwindow;
 use glfw::{Action, Key, Modifiers, MouseButton, StandardCursor, Window, WindowEvent};
-use imgui::sys as imgui_sys;
-use imgui::{ImGui, ImGuiKey, ImGuiMouseCursor};
-use std::os::raw::{c_char, c_void};
+use imgui::{ConfigFlags, Context, Key as ImGuiKey, MouseCursor, Ui};
+use imgui_opengl_renderer::Renderer;
+use std::ffi::CStr;
+use std::os::raw::c_void;
 use std::time::Instant;
 
-static mut WINDOW: *mut c_void = std::ptr::null_mut() as *mut c_void;
+struct GlfwClipboardBackend(*mut c_void);
+
+impl imgui::ClipboardBackend for GlfwClipboardBackend {
+    fn get(&mut self) -> Option<imgui::ImString> {
+        let char_ptr = unsafe { glfw::ffi::glfwGetClipboardString(self.0 as *mut GLFWwindow) };
+        let c_str = unsafe { CStr::from_ptr(char_ptr) };
+        Some(imgui::ImString::new(c_str.to_str().unwrap()))
+    }
+
+    fn set(&mut self, value: &imgui::ImStr) {
+        unsafe {
+            glfw::ffi::glfwSetClipboardString(self.0 as *mut GLFWwindow, value.as_ptr());
+        };
+    }
+}
 
 pub struct ImguiGLFW {
     last_frame: Instant,
     mouse_press: [bool; 5],
     cursor_pos: (f64, f64),
-    cursor: (ImGuiMouseCursor, Option<StandardCursor>),
+    cursor: (MouseCursor, Option<StandardCursor>),
+
+    renderer: Renderer,
 }
 
 impl ImguiGLFW {
-    pub fn new(imgui: &mut ImGui) -> Self {
+    pub fn new(imgui: &mut Context, window: &mut Window) -> Self {
         unsafe {
-            WINDOW = glfw::ffi::glfwGetCurrentContext() as *mut c_void;
+            let window_ptr = glfw::ffi::glfwGetCurrentContext() as *mut c_void;
+            imgui.set_clipboard_backend(Box::new(GlfwClipboardBackend(window_ptr)));
         }
 
-        {
-            let io = unsafe { &mut *imgui_sys::igGetIO() };
-            io.get_clipboard_text_fn = Some(get_clipboard_text);
-            io.set_clipboard_text_fn = Some(set_clipboard_text);
-            io.clipboard_user_data = std::ptr::null_mut();
-        }
+        let mut io_mut = imgui.io_mut();
+        io_mut.key_map[ImGuiKey::Tab as usize] = Key::Tab as u32;
+        io_mut.key_map[ImGuiKey::LeftArrow as usize] = Key::Left as u32;
+        io_mut.key_map[ImGuiKey::RightArrow as usize] = Key::Right as u32;
+        io_mut.key_map[ImGuiKey::UpArrow as usize] = Key::Up as u32;
+        io_mut.key_map[ImGuiKey::DownArrow as usize] = Key::Down as u32;
+        io_mut.key_map[ImGuiKey::PageUp as usize] = Key::PageUp as u32;
+        io_mut.key_map[ImGuiKey::PageDown as usize] = Key::PageDown as u32;
+        io_mut.key_map[ImGuiKey::Home as usize] = Key::Home as u32;
+        io_mut.key_map[ImGuiKey::End as usize] = Key::End as u32;
+        io_mut.key_map[ImGuiKey::Insert as usize] = Key::Insert as u32;
+        io_mut.key_map[ImGuiKey::Delete as usize] = Key::Delete as u32;
+        io_mut.key_map[ImGuiKey::Backspace as usize] = Key::Backspace as u32;
+        io_mut.key_map[ImGuiKey::Space as usize] = Key::Space as u32;
+        io_mut.key_map[ImGuiKey::Enter as usize] = Key::Enter as u32;
+        io_mut.key_map[ImGuiKey::Escape as usize] = Key::Escape as u32;
+        io_mut.key_map[ImGuiKey::A as usize] = Key::A as u32;
+        io_mut.key_map[ImGuiKey::C as usize] = Key::C as u32;
+        io_mut.key_map[ImGuiKey::V as usize] = Key::V as u32;
+        io_mut.key_map[ImGuiKey::X as usize] = Key::X as u32;
+        io_mut.key_map[ImGuiKey::Y as usize] = Key::Y as u32;
+        io_mut.key_map[ImGuiKey::Z as usize] = Key::Z as u32;
 
-        {
-            imgui.set_imgui_key(ImGuiKey::Tab, Key::Tab as u8);
-            imgui.set_imgui_key(ImGuiKey::LeftArrow, Key::Left as u8);
-            imgui.set_imgui_key(ImGuiKey::RightArrow, Key::Right as u8);
-            imgui.set_imgui_key(ImGuiKey::UpArrow, Key::Up as u8);
-            imgui.set_imgui_key(ImGuiKey::DownArrow, Key::Down as u8);
-            imgui.set_imgui_key(ImGuiKey::PageUp, Key::PageUp as u8);
-            imgui.set_imgui_key(ImGuiKey::PageDown, Key::PageDown as u8);
-            imgui.set_imgui_key(ImGuiKey::Home, Key::Home as u8);
-            imgui.set_imgui_key(ImGuiKey::End, Key::End as u8);
-            imgui.set_imgui_key(ImGuiKey::Delete, Key::Delete as u8);
-            imgui.set_imgui_key(ImGuiKey::Backspace, Key::Backspace as u8);
-            imgui.set_imgui_key(ImGuiKey::Enter, Key::Enter as u8);
-            imgui.set_imgui_key(ImGuiKey::Escape, Key::Escape as u8);
-            imgui.set_imgui_key(ImGuiKey::A, Key::A as u8);
-            imgui.set_imgui_key(ImGuiKey::C, Key::C as u8);
-            imgui.set_imgui_key(ImGuiKey::V, Key::V as u8);
-            imgui.set_imgui_key(ImGuiKey::X, Key::X as u8);
-            imgui.set_imgui_key(ImGuiKey::Y, Key::Y as u8);
-            imgui.set_imgui_key(ImGuiKey::Z, Key::Z as u8);
-        }
+        let renderer = Renderer::new(imgui, |s| window.get_proc_address(s) as _);
 
         Self {
             last_frame: Instant::now(),
             mouse_press: [false; 5],
             cursor_pos: (0., 0.),
-            cursor: (ImGuiMouseCursor::None, None),
+            cursor: (MouseCursor::Arrow, None),
+
+            renderer,
         }
     }
 
-    pub fn handle_event(&mut self, imgui: &mut ImGui, event: &WindowEvent) {
+    pub fn handle_event(&mut self, imgui: &mut Context, event: &WindowEvent) {
         match *event {
             WindowEvent::MouseButton(mouse_btn, action, _) => {
                 let index = match mouse_btn {
@@ -189,81 +153,79 @@ impl ImguiGLFW {
                 };
                 let press = action != Action::Release;
                 self.mouse_press[index] = press;
-                imgui.set_mouse_down(self.mouse_press);
+                imgui.io_mut().mouse_down = self.mouse_press;
             }
             WindowEvent::CursorPos(w, h) => {
-                imgui.set_mouse_pos(w as f32, h as f32);
+                imgui.io_mut().mouse_pos = [w as f32, h as f32];
                 self.cursor_pos = (w, h);
             }
             WindowEvent::Scroll(_, d) => {
-                imgui.set_mouse_wheel(d as f32);
+                imgui.io_mut().mouse_wheel = d as f32;
             }
             WindowEvent::Char(character) => {
-                imgui.add_input_character(character);
+                imgui.io_mut().add_input_character(character);
             }
             WindowEvent::Key(key, _, action, modifier) => {
                 Self::set_mod(imgui, modifier);
-                if action != Action::Release {
-                    imgui.set_key(key as u8, true);
-                } else {
-                    imgui.set_key(key as u8, false);
-                }
+                imgui.io_mut().keys_down[key as usize] = action != Action::Release;
             }
             _ => {}
         }
     }
 
-    pub fn frame<'a>(&mut self, window: &mut Window, imgui: &'a mut ImGui) -> imgui::Ui<'a> {
-        let mouse_cursor = imgui.mouse_cursor();
-        if imgui.mouse_draw_cursor() || mouse_cursor == ImGuiMouseCursor::None {
-            self.cursor = (ImGuiMouseCursor::None, None);
-            window.set_cursor(None);
-        } else if mouse_cursor != self.cursor.0 {
-            let cursor = match mouse_cursor {
-                ImGuiMouseCursor::None => unreachable!("mouse_cursor was None!"),
-                ImGuiMouseCursor::Arrow => StandardCursor::Arrow,
-                ImGuiMouseCursor::TextInput => StandardCursor::IBeam,
-                ImGuiMouseCursor::ResizeAll => StandardCursor::Arrow,
-                ImGuiMouseCursor::ResizeNS => StandardCursor::VResize,
-                ImGuiMouseCursor::ResizeEW => StandardCursor::HResize,
-                ImGuiMouseCursor::ResizeNESW => StandardCursor::Arrow,
-                ImGuiMouseCursor::ResizeNWSE => StandardCursor::Arrow,
-                ImGuiMouseCursor::Hand => StandardCursor::Hand,
-            };
-
-            window.set_cursor(Some(glfw::Cursor::standard(cursor)));
-        }
+    pub fn frame<'a>(&mut self, window: &mut Window, imgui: &'a mut Context) -> imgui::Ui<'a> {
+        let io = imgui.io_mut();
 
         let now = Instant::now();
         let delta = now - self.last_frame;
         let delta_s = delta.as_secs() as f32 + delta.subsec_nanos() as f32 / 1_000_000_000.0;
         self.last_frame = now;
+        io.delta_time = delta_s;
 
         let window_size = window.get_size();
-        let frame_size = imgui::FrameSize {
-            logical_size: (f64::from(window_size.0), f64::from(window_size.1)),
-            hidpi_factor: 1.0,
-        };
-        imgui.frame(frame_size, delta_s)
+        io.display_size = [window_size.0 as f32, window_size.1 as f32];
+
+        imgui.frame()
     }
 
-    fn set_mod(imgui: &mut ImGui, modifier: Modifiers) {
-        imgui.set_key_ctrl(modifier.intersects(Modifiers::Control));
-        imgui.set_key_alt(modifier.intersects(Modifiers::Alt));
-        imgui.set_key_shift(modifier.intersects(Modifiers::Shift));
-        imgui.set_key_super(modifier.intersects(Modifiers::Super));
+    pub fn draw<'ui>(&mut self, ui: Ui<'ui>, window: &mut Window) {
+        let io = ui.io();
+        if !io
+            .config_flags
+            .contains(ConfigFlags::NO_MOUSE_CURSOR_CHANGE)
+        {
+            match ui.mouse_cursor() {
+                Some(mouse_cursor) if !io.mouse_draw_cursor => {
+                    window.set_cursor_mode(glfw::CursorMode::Normal);
+
+                    let cursor = match mouse_cursor {
+                        MouseCursor::TextInput => StandardCursor::IBeam,
+                        MouseCursor::ResizeNS => StandardCursor::VResize,
+                        MouseCursor::ResizeEW => StandardCursor::HResize,
+                        MouseCursor::Hand => StandardCursor::Hand,
+                        _ => StandardCursor::Arrow,
+                    };
+
+                    if self.cursor.1 != Some(cursor) {
+                        self.cursor.1 = Some(cursor);
+                        self.cursor.0 = mouse_cursor;
+                    }
+                }
+                _ => {
+                    self.cursor.0 = MouseCursor::Arrow;
+                    self.cursor.1 = None;
+                    window.set_cursor_mode(glfw::CursorMode::Hidden);
+                }
+            }
+        }
+
+        self.renderer.render(ui);
     }
-}
 
-#[doc(hidden)]
-pub extern "C" fn get_clipboard_text(_user_data: *mut c_void) -> *const c_char {
-    unsafe { glfw::ffi::glfwGetClipboardString(WINDOW as *mut GLFWwindow) }
-}
-
-#[doc(hidden)]
-#[cfg_attr(feature = "cargo-clippy", allow(clippy::not_unsafe_ptr_arg_deref))]
-pub extern "C" fn set_clipboard_text(_user_data: *mut c_void, text: *const c_char) {
-    unsafe {
-        glfw::ffi::glfwSetClipboardString(WINDOW as *mut GLFWwindow, text);
+    fn set_mod(imgui: &mut Context, modifier: Modifiers) {
+        imgui.io_mut().key_ctrl = modifier.intersects(Modifiers::Control);
+        imgui.io_mut().key_alt = modifier.intersects(Modifiers::Alt);
+        imgui.io_mut().key_shift = modifier.intersects(Modifiers::Shift);
+        imgui.io_mut().key_super = modifier.intersects(Modifiers::Super);
     }
 }
