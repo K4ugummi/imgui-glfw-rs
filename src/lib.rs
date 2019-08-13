@@ -205,6 +205,7 @@ impl ImguiGLFW {
                         MouseCursor::Hand => StandardCursor::Hand,
                         _ => StandardCursor::Arrow,
                     };
+                    window.set_cursor(Some(glfw::Cursor::standard(cursor)));
 
                     if self.cursor.1 != Some(cursor) {
                         self.cursor.1 = Some(cursor);
