@@ -11,7 +11,7 @@ license = "MIT/Apache-2.0"
 edition = "2018"
 
 [dependencies]
-imgui = "0.1.0"
+imgui = "0.6.1"
 imgui-opengl-renderer = "0.5.0"
 glfw = "0.31.0"
 
