@@ -84,7 +84,10 @@ impl imgui::ClipboardBackend for GlfwClipboardBackend {
 
     fn set(&mut self, value: &imgui::ImStr) {
         unsafe {
-            glfw::ffi::glfwSetClipboardString(self.0 as *mut GLFWwindow, value.as_ptr());
+            glfw::ffi::glfwSetClipboardString(
+                self.0 as *mut GLFWwindow,
+                value.as_ptr(),
+            );
         };
     }
 }
