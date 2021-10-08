@@ -11,8 +11,8 @@ license = "MIT/Apache-2.0"
 edition = "2018"
 
 [dependencies]
-imgui = "0.8.0"
-imgui-opengl-renderer = {path = "../rust-imgui-opengl-renderer"}
+imgui = "0.7.0"
+imgui-opengl-renderer = "0.11.0"
 glfw = "0.42.0"
 
 [dev-dependencies]

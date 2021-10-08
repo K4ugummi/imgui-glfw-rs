@@ -76,13 +76,13 @@ use std::time::Instant;
 struct GlfwClipboardBackend(*mut c_void);
 
 impl imgui::ClipboardBackend for GlfwClipboardBackend {
-    fn get(&mut self) -> Option<String> {
+    fn get(&mut self) -> Option<imgui::ImString> {
         let char_ptr = unsafe { glfw::ffi::glfwGetClipboardString(self.0 as *mut GLFWwindow) };
         let c_str = unsafe { CStr::from_ptr(char_ptr) };
-        Some(c_str.to_str().unwrap().to_owned())
+        Some(imgui::ImString::new(c_str.to_str().unwrap()))
     }
 
-    fn set(&mut self, value: &str) {
+    fn set(&mut self, value: &imgui::ImStr) {
         unsafe {
             glfw::ffi::glfwSetClipboardString(
                 self.0 as *mut GLFWwindow,
@@ -105,7 +105,7 @@ impl ImguiGLFW {
     pub fn new(imgui: &mut Context, window: &mut Window) -> Self {
         unsafe {
             let window_ptr = glfw::ffi::glfwGetCurrentContext() as *mut c_void;
-            imgui.set_clipboard_backend(GlfwClipboardBackend(window_ptr));
+            imgui.set_clipboard_backend(Box::new(GlfwClipboardBackend(window_ptr)));
         }
 
         let mut io_mut = imgui.io_mut();
