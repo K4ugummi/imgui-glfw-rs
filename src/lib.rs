@@ -60,31 +60,32 @@
 //! }
 //! ```
 
-/// Use the reexported glfw crate to avoid version conflicts.
-pub use glfw;
+/// Use the reexported glfw crate to avoid version conflicts. extern crate glfw;
+
+use std::ffi::CStr;
+use std::os::raw::{c_char, c_void};
+use std::time::Instant;
+
+use glfw::{Action, Key, Modifiers, MouseButton, StandardCursor, Window, WindowEvent};
+use glfw::ffi::GLFWwindow;
 /// Use the reexported imgui crate to avoid version conflicts.
 pub use imgui;
-
-use glfw::ffi::GLFWwindow;
-use glfw::{Action, Key, Modifiers, MouseButton, StandardCursor, Window, WindowEvent};
 use imgui::{ConfigFlags, Context, Key as ImGuiKey, MouseCursor, Ui};
 use imgui_opengl_renderer::Renderer;
-use std::ffi::CStr;
-use std::os::raw::c_void;
-use std::time::Instant;
 
 struct GlfwClipboardBackend(*mut c_void);
 
 impl imgui::ClipboardBackend for GlfwClipboardBackend {
-    fn get(&mut self) -> Option<imgui::ImString> {
+    fn get(&mut self) -> Option<String> {
         let char_ptr = unsafe { glfw::ffi::glfwGetClipboardString(self.0 as *mut GLFWwindow) };
         let c_str = unsafe { CStr::from_ptr(char_ptr) };
-        Some(imgui::ImString::new(c_str.to_str().unwrap()))
+        let string = String::from(c_str.to_str().unwrap());
+        Some(string)
     }
 
-    fn set(&mut self, value: &imgui::ImStr) {
+    fn set(&mut self, value: &str) {
         unsafe {
-            glfw::ffi::glfwSetClipboardString(self.0 as *mut GLFWwindow, value.as_ptr());
+            glfw::ffi::glfwSetClipboardString(self.0 as *mut GLFWwindow, value.as_ptr() as *const c_char);
         };
     }
 }
@@ -102,7 +103,7 @@ impl ImguiGLFW {
     pub fn new(imgui: &mut Context, window: &mut Window) -> Self {
         unsafe {
             let window_ptr = glfw::ffi::glfwGetCurrentContext() as *mut c_void;
-            imgui.set_clipboard_backend(Box::new(GlfwClipboardBackend(window_ptr)));
+            imgui.set_clipboard_backend(GlfwClipboardBackend(window_ptr));
         }
 
         let mut io_mut = imgui.io_mut();
@@ -190,10 +191,7 @@ impl ImguiGLFW {
 
     pub fn draw<'ui>(&mut self, ui: Ui<'ui>, window: &mut Window) {
         let io = ui.io();
-        if !io
-            .config_flags
-            .contains(ConfigFlags::NO_MOUSE_CURSOR_CHANGE)
-        {
+        if !io.config_flags.contains(ConfigFlags::NO_MOUSE_CURSOR_CHANGE) {
             match ui.mouse_cursor() {
                 Some(mouse_cursor) if !io.mouse_draw_cursor => {
                     window.set_cursor_mode(glfw::CursorMode::Normal);
