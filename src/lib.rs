@@ -69,20 +69,22 @@ use glfw::ffi::GLFWwindow;
 use glfw::{Action, Key, Modifiers, MouseButton, StandardCursor, Window, WindowEvent};
 use imgui::{ConfigFlags, Context, Key as ImGuiKey, MouseCursor, Ui};
 use imgui_opengl_renderer::Renderer;
-use std::ffi::CStr;
+use std::ffi::{CStr, CString};
 use std::os::raw::c_void;
 use std::time::Instant;
 
 struct GlfwClipboardBackend(*mut c_void);
 
 impl imgui::ClipboardBackend for GlfwClipboardBackend {
-    fn get(&mut self) -> Option<imgui::ImString> {
+    fn get(&mut self) -> Option<String> {
         let char_ptr = unsafe { glfw::ffi::glfwGetClipboardString(self.0 as *mut GLFWwindow) };
         let c_str = unsafe { CStr::from_ptr(char_ptr) };
-        Some(imgui::ImString::new(c_str.to_str().unwrap()))
+        Some(c_str.to_str().unwrap().to_owned())
     }
 
-    fn set(&mut self, value: &imgui::ImStr) {
+    fn set(&mut self, value: &str) {
+        let value = CString::new(value).unwrap();
+
         unsafe {
             glfw::ffi::glfwSetClipboardString(self.0 as *mut GLFWwindow, value.as_ptr());
         };
@@ -102,10 +104,10 @@ impl ImguiGLFW {
     pub fn new(imgui: &mut Context, window: &mut Window) -> Self {
         unsafe {
             let window_ptr = glfw::ffi::glfwGetCurrentContext() as *mut c_void;
-            imgui.set_clipboard_backend(Box::new(GlfwClipboardBackend(window_ptr)));
+            imgui.set_clipboard_backend(GlfwClipboardBackend(window_ptr));
         }
 
-        let mut io_mut = imgui.io_mut();
+        let io_mut = imgui.io_mut();
         io_mut.key_map[ImGuiKey::Tab as usize] = Key::Tab as u32;
         io_mut.key_map[ImGuiKey::LeftArrow as usize] = Key::Left as u32;
         io_mut.key_map[ImGuiKey::RightArrow as usize] = Key::Right as u32;
@@ -173,7 +175,12 @@ impl ImguiGLFW {
         }
     }
 
-    pub fn frame<'a>(&mut self, window: &mut Window, imgui: &'a mut Context) -> imgui::Ui<'a> {
+    #[deprecated]
+    pub fn frame<'ctx>(&mut self, window: &mut Window, imgui: &'ctx mut Context) -> &'ctx mut imgui::Ui {
+        self.new_frame(window, imgui)
+    }
+
+    pub fn new_frame<'ctx>(&mut self, window: &mut Window, imgui: &'ctx mut Context) -> &'ctx mut imgui::Ui {
         let io = imgui.io_mut();
 
         let now = Instant::now();
@@ -185,10 +192,10 @@ impl ImguiGLFW {
         let window_size = window.get_size();
         io.display_size = [window_size.0 as f32, window_size.1 as f32];
 
-        imgui.frame()
+        imgui.new_frame()
     }
 
-    pub fn draw<'ui>(&mut self, ui: Ui<'ui>, window: &mut Window) {
+    pub fn prepare_frame(&mut self, ui: &mut Ui, window: &mut Window) {
         let io = ui.io();
         if !io
             .config_flags
@@ -219,8 +226,15 @@ impl ImguiGLFW {
                 }
             }
         }
+    }
 
-        self.renderer.render(ui);
+    #[deprecated]
+    pub fn draw<'ctx>(&mut self, imgui: &'ctx mut Context, window: &mut Window) {
+        self.render(imgui, window);
+    }
+
+    pub fn render<'ctx>(&mut self, imgui: &'ctx mut Context, window: &mut Window) {
+        self.renderer.render(imgui);
     }
 
     fn set_mod(imgui: &mut Context, modifier: Modifiers) {

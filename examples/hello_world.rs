@@ -1,11 +1,11 @@
-use glfw::Context;
+use glfw::{fail_on_errors, Context};
 use imgui::Context as ImContext;
 use imgui_glfw_rs::glfw;
 use imgui_glfw_rs::imgui;
 use imgui_glfw_rs::ImguiGLFW;
 
 fn main() {
-    let mut glfw = glfw::init(glfw::FAIL_ON_ERRORS).unwrap();
+    let mut glfw = glfw::init(fail_on_errors!()).unwrap();
     glfw.window_hint(glfw::WindowHint::ContextVersion(3, 3));
 
     let (mut window, events) = glfw
@@ -30,7 +30,6 @@ fn main() {
     }
 
     let mut imgui = ImContext::create();
-
     let mut imgui_glfw = ImguiGLFW::new(&mut imgui, &mut window);
 
     while !window.should_close() {
@@ -38,11 +37,12 @@ fn main() {
             gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
         }
 
-        let ui = imgui_glfw.frame(&mut window, &mut imgui);
+        let ui = imgui_glfw.new_frame(&mut window, &mut imgui);
 
         ui.show_demo_window(&mut true);
 
-        imgui_glfw.draw(ui, &mut window);
+        imgui_glfw.prepare_frame(ui, &mut window);
+        imgui_glfw.render(&mut imgui, &mut window);
 
         window.swap_buffers();
 
