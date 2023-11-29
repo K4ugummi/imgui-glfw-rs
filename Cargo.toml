@@ -1,6 +1,6 @@
 [package]
 name = "imgui-glfw-rs"
-version = "0.4.0"
+version = "0.5.0"
 authors = ["K4ugummi <stephan.schauerte@gmail.com>"]
 description = "ImGui input handling for GLFW"
 homepage = "https://github.com/K4ugummi/imgui-glfw-rs"
