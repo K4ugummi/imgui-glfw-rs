@@ -14,7 +14,7 @@ edition = "2024"
 
 glfw = "0.59.0"
 gl = "0.14.0"
-imgui = { git = "https://github.com/K4ugummi/imgui-rs.git", branch = "main" }
-imgui-opengl-renderer-rs = { git = "https://github.com/K4ugummi/imgui-opengl-renderer-rs.git" }
+imgui = "0.12.0"
+imgui-opengl-renderer-rs = "0.12.0"
 
 [dev-dependencies]
