@@ -1,6 +1,6 @@
 [package]
 name = "imgui-glfw-rs"
-version = "0.12.2"
+version = "0.13.0"
 authors = ["K4ugummi <stephan.schauerte@gmail.com>"]
 description = "ImGui input handling for GLFW"
 homepage = "https://github.com/K4ugummi/imgui-glfw-rs"
@@ -12,11 +12,19 @@ license = "MIT OR Apache-2.0"
 edition = "2024"
 rust-version = "1.85"
 
-[dependencies]
+[features]
+default = []
+opengl = ["dep:gl", "dep:imgui-opengl-renderer-rs"]
+vulkan = ["dep:ash", "dep:imgui-vulkan-renderer-rs"]
 
+[dependencies]
 glfw = "0.61.0"
-gl = "0.14.0"
+gl = { version = "0.14.0", optional = true }
+ash = { version = "0.38", optional = true }
 imgui = "0.12.0"
-imgui-opengl-renderer-rs = "0.12.2"
+imgui-opengl-renderer-rs = { version = "0.12.2", optional = true }
+imgui-vulkan-renderer-rs = { version = "0.1.0", optional = true }
 
 [dev-dependencies]
+gl = "0.14.0"
+ash = "0.38"

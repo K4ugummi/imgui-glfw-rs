@@ -1,10 +1,24 @@
 //! GLFW input handling backend for [imgui-rs](https://docs.rs/imgui).
 //!
 //! This crate connects GLFW window events to imgui, handling mouse, keyboard,
-//! scroll, clipboard, cursor icons, and HiDPI scaling. It also bundles an
-//! OpenGL renderer so a single [`ImguiGLFW`] value is all you need.
+//! scroll, clipboard, cursor icons, and HiDPI scaling.
 //!
-//! # Quick start
+//! # Features
+//!
+//! No features are enabled by default. Pick the renderer you need:
+//!
+//! - **`opengl`** — bundles the
+//!   [`imgui-opengl-renderer-rs`](https://docs.rs/imgui-opengl-renderer-rs)
+//!   crate so a single [`ImguiGLFW`] value handles both input and rendering.
+//! - **`vulkan`** — bundles the
+//!   [`imgui-vulkan-renderer-rs`](https://docs.rs/imgui-vulkan-renderer-rs)
+//!   crate and re-exports it for Vulkan-based rendering.
+//!
+//! Without either feature, [`ImguiGLFW`] handles input only — call
+//! [`update_cursors`](ImguiGLFW::update_cursors) and your own renderer each
+//! frame instead of `draw`.
+//!
+//! # Quick start (with `opengl` feature)
 //!
 //! ```rust,no_run
 //! # use glfw::Context;
@@ -34,8 +48,29 @@
 //! }
 //! ```
 //!
-//! See `examples/hello_world.rs` for a more complete example.
-//! Run it with `cargo run --example hello_world`.
+//! # Using a custom renderer (without `opengl` feature)
+//!
+//! ```rust,ignore
+//! // Cargo.toml: imgui-glfw-rs = { version = "..." }  (no feature flags)
+//! let mut imgui_glfw = ImguiGLFW::new(&mut imgui, &mut window);
+//!
+//! while !window.should_close() {
+//!     let ui = imgui_glfw.frame(&mut window, &mut imgui);
+//!     // ... build UI ...
+//!     imgui_glfw.update_cursors(&mut imgui, &mut window);
+//!     my_renderer.render(imgui.render());
+//!     window.swap_buffers();
+//!     // ... poll events ...
+//! }
+//! ```
+//!
+//! See `examples/hello_opengl.rs` and `examples/hello_vulkan.rs` for complete
+//! examples. Run them with:
+//!
+//! ```sh
+//! cargo run --example hello_opengl --features opengl
+//! cargo run --example hello_vulkan --features vulkan
+//! ```
 
 /// Use the re-exported glfw crate to avoid version conflicts.
 pub use glfw;
@@ -46,10 +81,16 @@ mod event_handler;
 
 use event_handler::{handle_key, handle_key_modifier};
 use glfw::ffi::{GLFWcursor, GLFWwindow};
-use glfw::{Action, Window, WindowEvent};
+use glfw::{Action, Context as GlfwContext, Window, WindowEvent};
 use imgui::{BackendFlags, ConfigFlags, Context, MouseCursor};
+#[cfg(feature = "opengl")]
 use imgui_opengl_renderer_rs::Renderer;
+#[cfg(feature = "opengl")]
 pub use imgui_opengl_renderer_rs::RendererError;
+#[cfg(feature = "vulkan")]
+pub use imgui_vulkan_renderer_rs;
+#[cfg(feature = "vulkan")]
+pub use imgui_vulkan_renderer_rs::RendererError as VulkanRendererError;
 use std::ffi::{CStr, CString};
 use std::os::raw::c_void;
 use std::time::Instant;
@@ -90,17 +131,52 @@ fn mouse_cursor_to_glfw(cursor: MouseCursor) -> i32 {
     }
 }
 
-/// Combined imgui input handler and OpenGL renderer for a GLFW window.
+/// imgui input handler (and optional OpenGL renderer) for a GLFW window.
 ///
 /// Create one with [`ImguiGLFW::new`], then call [`frame`](Self::frame),
-/// build your UI, call [`draw`](Self::draw), and forward events with
-/// [`handle_event`](Self::handle_event) each iteration of your main loop.
+/// build your UI, call `draw` (with the `opengl` feature) or
+/// [`update_cursors`](Self::update_cursors) + your own renderer, and forward
+/// events with [`handle_event`](Self::handle_event) each iteration of your
+/// main loop.
 pub struct ImguiGLFW {
     last_frame: Instant,
     current_cursor: Option<MouseCursor>,
     /// Cached GLFW cursor pointers, indexed by [`MouseCursor`] discriminant.
     cursor_cache: [*mut GLFWcursor; MouseCursor::COUNT],
+    #[cfg(feature = "opengl")]
     renderer: Renderer,
+}
+
+/// Shared parts returned by [`init_common`].
+struct CommonInit {
+    cursor_cache: [*mut GLFWcursor; MouseCursor::COUNT],
+}
+
+/// Set up clipboard, backend flags, and cursor cache.
+fn init_common(imgui: &mut Context, window: &Window) -> CommonInit {
+    let window_ptr = window.window_ptr() as *mut c_void;
+    imgui.set_clipboard_backend(GlfwClipboardBackend(window_ptr));
+
+    let io_mut = imgui.io_mut();
+    io_mut.backend_flags.insert(BackendFlags::HAS_MOUSE_CURSORS);
+    io_mut.backend_flags.insert(BackendFlags::HAS_SET_MOUSE_POS);
+
+    // Pre-create all GLFW cursors via FFI so we get the full set
+    // (including ResizeNWSE, ResizeNESW, ResizeAll, NotAllowed).
+    // Some platforms don't support all shapes and report
+    // GLFW_CURSOR_UNAVAILABLE. Temporarily suppress the error callback
+    // so that returns null instead of panicking via glfw-rs.
+    let mut cursor_cache = [std::ptr::null_mut(); MouseCursor::COUNT];
+    unsafe {
+        let prev_cb = glfw::ffi::glfwSetErrorCallback(None);
+        for variant in MouseCursor::VARIANTS {
+            let ptr = glfw::ffi::glfwCreateStandardCursor(mouse_cursor_to_glfw(variant));
+            cursor_cache[variant as usize] = ptr;
+        }
+        glfw::ffi::glfwSetErrorCallback(prev_cb);
+    }
+
+    CommonInit { cursor_cache }
 }
 
 impl ImguiGLFW {
@@ -110,41 +186,36 @@ impl ImguiGLFW {
     /// `window` must be the current OpenGL context.
     ///
     /// Returns an error if the OpenGL shader/program compilation fails.
+    #[cfg(feature = "opengl")]
     pub fn new(imgui: &mut Context, window: &mut Window) -> Result<Self, RendererError> {
-        let window_ptr = unsafe { glfw::ffi::glfwGetCurrentContext() } as *mut c_void;
-        imgui.set_clipboard_backend(GlfwClipboardBackend(window_ptr));
-
-        let io_mut = imgui.io_mut();
-        io_mut.backend_flags.insert(BackendFlags::HAS_MOUSE_CURSORS);
-        io_mut.backend_flags.insert(BackendFlags::HAS_SET_MOUSE_POS);
-
+        let common = init_common(imgui, window);
         let renderer = Renderer::new(imgui, |s| {
             window
                 .get_proc_address(s)
                 .map_or(std::ptr::null(), |f| f as *const _)
         })?;
 
-        // Pre-create all GLFW cursors via FFI so we get the full set
-        // (including ResizeNWSE, ResizeNESW, ResizeAll, NotAllowed).
-        // Some platforms don't support all shapes and report
-        // GLFW_CURSOR_UNAVAILABLE. Temporarily suppress the error callback
-        // so that returns null instead of panicking via glfw-rs.
-        let mut cursor_cache = [std::ptr::null_mut(); MouseCursor::COUNT];
-        unsafe {
-            let prev_cb = glfw::ffi::glfwSetErrorCallback(None);
-            for variant in MouseCursor::VARIANTS {
-                let ptr = glfw::ffi::glfwCreateStandardCursor(mouse_cursor_to_glfw(variant));
-                cursor_cache[variant as usize] = ptr;
-            }
-            glfw::ffi::glfwSetErrorCallback(prev_cb);
-        }
-
         Ok(Self {
             last_frame: Instant::now(),
             current_cursor: None,
-            cursor_cache,
+            cursor_cache: common.cursor_cache,
             renderer,
         })
+    }
+
+    /// Create a new input-only backend (no renderer).
+    ///
+    /// Use this when you bring your own renderer (Vulkan, wgpu, etc.).
+    /// Call [`update_cursors`](Self::update_cursors) each frame instead of
+    /// `draw`.
+    #[cfg(not(feature = "opengl"))]
+    pub fn new(imgui: &mut Context, window: &mut Window) -> Self {
+        let common = init_common(imgui, window);
+        Self {
+            last_frame: Instant::now(),
+            current_cursor: None,
+            cursor_cache: common.cursor_cache,
+        }
     }
 
     /// Handle a GLFW window event and forward it to imgui.
@@ -224,18 +295,18 @@ impl ImguiGLFW {
         imgui.frame()
     }
 
-    /// Finish the frame: update the mouse cursor and render the draw data.
+    /// Update the GLFW mouse cursor to match what imgui requests.
     ///
-    /// Call this after you are done building your UI for the frame and before
-    /// `window.swap_buffers()`. The cursor icon is only updated when it
-    /// actually changes.
-    pub fn draw(&mut self, imgui: &mut Context, window: &mut Window) {
+    /// Call this once per frame after building your UI.  When the `opengl`
+    /// feature is enabled you can use `draw` instead, which calls this
+    /// automatically before rendering.
+    pub fn update_cursors(&mut self, imgui: &Context, window: &mut Window) {
         let io = imgui.io();
         if !io
             .config_flags
             .contains(ConfigFlags::NO_MOUSE_CURSOR_CHANGE)
         {
-            let window_ptr = unsafe { glfw::ffi::glfwGetCurrentContext() };
+            let window_ptr = window.window_ptr();
             match imgui.mouse_cursor() {
                 Some(mouse_cursor) if !io.mouse_draw_cursor => {
                     if self.current_cursor != Some(mouse_cursor) {
@@ -257,7 +328,20 @@ impl ImguiGLFW {
                 }
             }
         }
+    }
 
+    /// Finish the frame: update the mouse cursor and render the draw data
+    /// via the built-in OpenGL renderer.
+    ///
+    /// Call this after you are done building your UI for the frame and before
+    /// `window.swap_buffers()`. The cursor icon is only updated when it
+    /// actually changes.
+    ///
+    /// Only available with the `opengl` feature. Without it, call
+    /// [`update_cursors`](Self::update_cursors) and your own renderer instead.
+    #[cfg(feature = "opengl")]
+    pub fn draw(&mut self, imgui: &mut Context, window: &mut Window) {
+        self.update_cursors(imgui, window);
         self.renderer.render(imgui);
     }
 }

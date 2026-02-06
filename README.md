@@ -5,18 +5,55 @@
 
 GLFW input handling for imgui
 
-## How to use
-```rust
-// Use the reexported glfw crate to avoid version conflicts.
-use imgui_glfw_rs::glfw;
-// Use the reexported imgui crate to avoid version conflicts.
-use imgui_glfw_rs::imgui;
+## Features
 
+No features are enabled by default. Pick the renderer you need:
+
+- **`opengl`** — bundles the `imgui-opengl-renderer-rs` crate so a single
+  `ImguiGLFW` value handles both input and rendering.
+- **`vulkan`** — bundles the `imgui-vulkan-renderer-rs` crate and re-exports it
+  for Vulkan-based rendering.
+
+```toml
+# OpenGL
+imgui-glfw-rs = { version = "0.12", features = ["opengl"] }
+
+# Vulkan
+imgui-glfw-rs = { version = "0.12", features = ["vulkan"] }
+```
+
+Without either feature, `ImguiGLFW` handles input only — call `update_cursors()`
+and your own renderer each frame instead of `draw()`.
+
+## Prerequisites
+
+You need a C compiler and CMake to build GLFW from source (handled automatically by the `glfw-sys` crate).
+
+**Debian / Ubuntu:**
+```sh
+sudo apt install build-essential cmake libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libgl-dev
+```
+
+For the Vulkan example, also install:
+```sh
+sudo apt install libvulkan-dev
+```
+
+**Windows:**
+
+Install [CMake](https://cmake.org/download/) and a C compiler (MSVC via [Visual Studio](https://visualstudio.microsoft.com/) or MinGW). For the Vulkan example, install the [Vulkan SDK](https://vulkan.lunarg.com/sdk/home).
+
+## How to use
+
+### OpenGL
+
+```rust
+use imgui_glfw_rs::glfw;
+use imgui_glfw_rs::imgui;
 use imgui_glfw_rs::ImguiGLFW;
-// ImGui uses { ... }
 
 fn main() {
-    // Initialize imgui and glfw and imgui renderer.
+    // Initialize glfw with an OpenGL context and load GL functions.
     // { ... }
 
     let mut imgui_glfw = ImguiGLFW::new(&mut imgui, &mut window).unwrap();
@@ -28,20 +65,53 @@ fn main() {
         // { ... }
 
         imgui_glfw.draw(&mut imgui, &mut window);
-
         window.swap_buffers();
 
-        // Handle imgui events
         glfw.poll_events();
         for (_, event) in glfw::flush_messages(&events) {
-            let captured = imgui_glfw.handle_event(&mut imgui, &event);
-            if captured {
-                // imgui wants this event; skip forwarding to app logic
-            }
+            imgui_glfw.handle_event(&mut imgui, &event);
         }
     }
 }
 ```
+
+### Vulkan
+
+```rust
+use imgui_glfw_rs::glfw;
+use imgui_glfw_rs::imgui;
+use imgui_glfw_rs::imgui_vulkan_renderer_rs::{Renderer, RendererCreateInfo};
+use imgui_glfw_rs::ImguiGLFW;
+
+fn main() {
+    // Initialize glfw with ClientApi(NoApi) and set up Vulkan
+    // (instance, device, swapchain, render pass, etc.).
+    // { ... }
+
+    let mut imgui_glfw = ImguiGLFW::new(&mut imgui, &mut window);
+    let mut renderer = Renderer::new(&mut imgui, &create_info).unwrap();
+
+    while !window.should_close() {
+        let ui = imgui_glfw.frame(&mut window, &mut imgui);
+
+        // Draw your ui.
+        // { ... }
+
+        imgui_glfw.update_cursors(&imgui, &mut window);
+        let draw_data = imgui.render();
+
+        // Record command buffer, begin render pass, then:
+        renderer.render(draw_data, command_buffer).unwrap();
+
+        glfw.poll_events();
+        for (_, event) in glfw::flush_messages(&events) {
+            imgui_glfw.handle_event(&mut imgui, &event);
+        }
+    }
+}
+```
+
+See `examples/hello_opengl.rs` and `examples/hello_vulkan.rs` for complete working examples.
 
 ## Current implemented things
 - Mouse button press and release (event-based API)
@@ -60,11 +130,14 @@ fn main() {
 ## Unimplemented things and known issues
 - Gamepad / joystick input
 
-# Compiling and running the example
+# Compiling and running the examples
 ```sh
 git clone https://github.com/K4ugummi/imgui-glfw-rs.git
 cd imgui-glfw-rs
-cargo run --example hello_world
+cargo run --example hello_opengl --features opengl
+
+# Vulkan example (requires Vulkan SDK)
+cargo run --example hello_vulkan --features vulkan
 ```
 
 # Contributing

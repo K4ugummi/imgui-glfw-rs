@@ -11,7 +11,7 @@ fn main() {
         .create_window(
             1024,
             768,
-            "imgui-glfw-rs example",
+            "imgui-glfw-rs OpenGL example",
             glfw::WindowMode::Windowed,
         )
         .expect("Failed to create window");
