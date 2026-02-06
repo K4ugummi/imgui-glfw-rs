@@ -1,7 +1,6 @@
 # imgui-glfw-rs: GLFW Input handling for ImGui
-**EXPERIMENTAL!**  
-[![crates.io](https://meritbadge.herokuapp.com/imgui-glfw-rs)](https://crates.io/crates/imgui-glfw-rs)
-[![Documentation on docs.rs](https://docs.rs/imgui-glfw-rs/badge.svg)](https://docs.rs/imgui)
+[![crates.io](https://img.shields.io/crates/v/imgui-glfw-rs.svg)](https://crates.io/crates/imgui-glfw-rs)
+[![Documentation on docs.rs](https://docs.rs/imgui-glfw-rs/badge.svg)](https://docs.rs/imgui-glfw-rs)
 [![Dependencies](https://deps.rs/repo/github/k4ugummi/imgui-glfw-rs/status.svg)](https://deps.rs/repo/github/k4ugummi/imgui-glfw-rs)
 
 GLFW input handling for imgui
@@ -20,7 +19,7 @@ fn main() {
     // Initialize imgui and glfw and imgui renderer.
     // { ... }
 
-    let mut imgui_glfw = ImguiGLFW::new(&mut imgui);
+    let mut imgui_glfw = ImguiGLFW::new(&mut imgui, &mut window).unwrap();
 
     while !window.should_close() {
         let ui = imgui_glfw.frame(&mut window, &mut imgui);
@@ -28,39 +27,49 @@ fn main() {
         // Draw your ui.
         // { ... }
 
+        imgui_glfw.draw(&mut imgui, &mut window);
+
         window.swap_buffers();
 
         // Handle imgui events
         glfw.poll_events();
         for (_, event) in glfw::flush_messages(&events) {
-            imgui_glfw.handle_event(&mut imgui, &event);
+            let captured = imgui_glfw.handle_event(&mut imgui, &event);
+            if captured {
+                // imgui wants this event; skip forwarding to app logic
+            }
         }
     }
 }
 ```
 
 ## Current implemented things
-- MouseButton press and release
-- CursorPos movement
-- Scroll movement
+- Mouse button press and release (event-based API)
+- Cursor position movement (event-based API)
+- Scroll movement (vertical and horizontal)
 - Char input
 - Key press and release
 - Modifier handling
-- Cursor icons
+- Cursor icons (with change-detection optimization)
 - Clipboard copying/pasting
+- HiDPI / framebuffer scale support
+- Window focus tracking
+- Cursor enter/leave tracking
+- `handle_event()` returns whether imgui captured the event
 
 ## Unimplemented things and known issues
+- Gamepad / joystick input
 
 # Compiling and running the example
 ```sh
 git clone https://github.com/K4ugummi/imgui-glfw-rs.git
 cd imgui-glfw-rs
-cargo run --example helloworld
+cargo run --example hello_world
 ```
 
 # Contributing
 1. Make some changes
-2. Run rustfmt for code style conformance  
+2. Run rustfmt for code style conformance
 `cargo fmt`
 3. Open a pull request
 

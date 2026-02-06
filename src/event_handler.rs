@@ -1,7 +1,12 @@
+//! Maps GLFW key codes and modifiers to their imgui equivalents.
+
 use glfw::{Key, Modifiers};
 use imgui::{Io, Key as ImGuiKey};
 
-/// Handle changes in the key states.
+/// Map a GLFW [`Key`] to its imgui equivalent and send a key event.
+///
+/// Keys without an imgui counterpart (e.g. `World1`, `F13`–`F25`) are
+/// silently ignored.
 pub fn handle_key(io: &mut Io, key: &Key, pressed: bool) {
     let igkey = match key {
         Key::Space => ImGuiKey::Space,
@@ -10,16 +15,16 @@ pub fn handle_key(io: &mut Io, key: &Key, pressed: bool) {
         Key::Minus => ImGuiKey::Minus,
         Key::Period => ImGuiKey::Period,
         Key::Slash => ImGuiKey::Slash,
-        Key::Num0 => ImGuiKey::Keypad0,
-        Key::Num1 => ImGuiKey::Keypad1,
-        Key::Num2 => ImGuiKey::Keypad2,
-        Key::Num3 => ImGuiKey::Keypad3,
-        Key::Num4 => ImGuiKey::Keypad4,
-        Key::Num5 => ImGuiKey::Keypad5,
-        Key::Num6 => ImGuiKey::Keypad6,
-        Key::Num7 => ImGuiKey::Keypad7,
-        Key::Num8 => ImGuiKey::Keypad8,
-        Key::Num9 => ImGuiKey::Keypad9,
+        Key::Num0 => ImGuiKey::Alpha0,
+        Key::Num1 => ImGuiKey::Alpha1,
+        Key::Num2 => ImGuiKey::Alpha2,
+        Key::Num3 => ImGuiKey::Alpha3,
+        Key::Num4 => ImGuiKey::Alpha4,
+        Key::Num5 => ImGuiKey::Alpha5,
+        Key::Num6 => ImGuiKey::Alpha6,
+        Key::Num7 => ImGuiKey::Alpha7,
+        Key::Num8 => ImGuiKey::Alpha8,
+        Key::Num9 => ImGuiKey::Alpha9,
         Key::Semicolon => ImGuiKey::Semicolon,
         Key::Equal => ImGuiKey::Equal,
         Key::A => ImGuiKey::A,
@@ -59,6 +64,7 @@ pub fn handle_key(io: &mut Io, key: &Key, pressed: bool) {
         Key::CapsLock => ImGuiKey::CapsLock,
         Key::PrintScreen => ImGuiKey::PrintScreen,
         Key::ScrollLock => ImGuiKey::ScrollLock,
+        Key::NumLock => ImGuiKey::NumLock,
         Key::Pause => ImGuiKey::Pause,
         Key::Insert => ImGuiKey::Insert,
         Key::Home => ImGuiKey::Home,
@@ -117,7 +123,7 @@ pub fn handle_key(io: &mut Io, key: &Key, pressed: bool) {
     io.add_key_event(igkey, pressed);
 }
 
-/// Handle changes in the key modifier states.
+/// Send modifier-key state (Shift, Ctrl, Alt, Super) to imgui.
 pub fn handle_key_modifier(io: &mut Io, keymod: &Modifiers) {
     // handle the actual modifiers:
     io.add_key_event(ImGuiKey::ModShift, keymod.intersects(Modifiers::Shift));

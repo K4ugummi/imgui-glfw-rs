@@ -1,20 +1,22 @@
 [package]
 name = "imgui-glfw-rs"
-version = "0.12.0"
+version = "0.12.2"
 authors = ["K4ugummi <stephan.schauerte@gmail.com>"]
 description = "ImGui input handling for GLFW"
 homepage = "https://github.com/K4ugummi/imgui-glfw-rs"
 repository = "https://github.com/K4ugummi/imgui-glfw-rs"
 readme = "README.md"
 categories = ["gui"]
-license = "MIT/Apache-2.0"
+keywords = ["imgui", "glfw", "opengl", "input", "gui"]
+license = "MIT OR Apache-2.0"
 edition = "2024"
+rust-version = "1.85"
 
 [dependencies]
 
-glfw = "0.59.0"
+glfw = "0.61.0"
 gl = "0.14.0"
 imgui = "0.12.0"
-imgui-opengl-renderer-rs = "0.12.0"
+imgui-opengl-renderer-rs = "0.12.2"
 
 [dev-dependencies]
