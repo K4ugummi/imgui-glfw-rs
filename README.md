@@ -16,10 +16,10 @@ No features are enabled by default. Pick the renderer you need:
 
 ```toml
 # OpenGL
-imgui-glfw-rs = { version = "0.12", features = ["opengl"] }
+imgui-glfw-rs = { version = "0.13.1", features = ["opengl"] }
 
 # Vulkan
-imgui-glfw-rs = { version = "0.12", features = ["vulkan"] }
+imgui-glfw-rs = { version = "0.13.1", features = ["vulkan"] }
 ```
 
 Without either feature, `ImguiGLFW` handles input only — call `update_cursors()`
